@@ -42,11 +42,11 @@ public class Map_Tests {
 
         Map<String, Integer> redis = new RediskaMap<>();
 
-        redis.put("key234", 34534);
-        Assert.assertEquals(redis.get("key234"), Integer.valueOf(34534));
+        redis.put("key2345", 34534);
+        Assert.assertEquals(Integer.valueOf(34534),redis.get("key2345"));
 
-        redis.remove("key234");
-        Assert.assertNull(redis.get("key234"));
+        redis.remove("key2345");
+        Assert.assertNull(redis.get("key2345"));
 
     }
 

@@ -3,6 +3,7 @@ import redis.clients.jedis.Jedis;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class RediskaMap<K, V> implements Map<K, V> {
 
@@ -55,7 +56,11 @@ public class RediskaMap<K, V> implements Map<K, V> {
      */
     @Override
     public boolean containsKey(Object key) {
-        return false;
+        if (key instanceof String) {
+            return redis.exists((String)key);
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -110,12 +115,14 @@ public class RediskaMap<K, V> implements Map<K, V> {
     public V get(Object key) {
         if (key instanceof String) {
             String k = (String)key;
-            V result = (V)redis.get(k);
-            return result;
+            String elem = redis.get(k);
+            if (elem != null) {
+                V result = (V) Integer.valueOf(elem);
+                return result;
+            }
         }
-        else {
-            return null;
-        }
+
+        return null;
     }
 
     /**
@@ -148,7 +155,11 @@ public class RediskaMap<K, V> implements Map<K, V> {
             String trueKey = (String)key;
             if (value instanceof Integer) {
                 Integer trueValue = (Integer) value;
-                Long result = redis.append(trueKey, Integer.toString(trueValue));
+                Long result;
+                if (!redis.exists(trueKey)) {
+                    result = redis.append(trueKey, Integer.toString(trueValue));
+                    size++;
+                }
                 return value;
             } else {
                 return value;
@@ -191,7 +202,13 @@ public class RediskaMap<K, V> implements Map<K, V> {
      */
     @Override
     public V remove(Object key) {
-        return null;
+        if (key instanceof String) {
+            Long result = redis.del((String)key);
+            size--;
+            return (V)result;
+        } else {
+            return (V)(new Integer(0));
+        }
     }
 
     /**
@@ -227,7 +244,7 @@ public class RediskaMap<K, V> implements Map<K, V> {
      */
     @Override
     public void clear() {
-
+        redis.flushAll();
     }
 
     /**
@@ -247,7 +264,8 @@ public class RediskaMap<K, V> implements Map<K, V> {
      */
     @Override
     public Set<K> keySet() {
-        return null;
+        Set<String> keys = redis.keys("*");
+        return keys.stream().map( x -> (K)x).collect(Collectors.toSet());
     }
 
     /**
