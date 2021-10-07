@@ -2,9 +2,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class Map_Tests {
@@ -16,7 +14,7 @@ public class Map_Tests {
     @Test
     public void testSimpleMapStorage() {
 
-        Map<String, Integer> redis = new RedisMapObject<>();
+        Map<String, Integer> redis = new RediskaMap<>();
         Map<String, Integer> testData = new HashMap<>();
 
         testData.put("Key1", 10);
@@ -42,7 +40,7 @@ public class Map_Tests {
     @Test
     public void testDeletefromMap() {
 
-        Map<String, Integer> redis = new RedisMapObject<>();
+        Map<String, Integer> redis = new RediskaMap<>();
 
         redis.put("key234", 34534);
         Assert.assertEquals(redis.get("key234"), Integer.valueOf(34534));
@@ -55,7 +53,7 @@ public class Map_Tests {
     @Test
     public void testSizeAndIsEmpty(){
 
-        Map<String, Integer> redis = new RedisMapObject<>();
+        Map<String, Integer> redis = new RediskaMap<>();
 
         Assert.assertTrue(redis.isEmpty());
         Assert.assertEquals(redis.size(), 0);
@@ -80,7 +78,7 @@ public class Map_Tests {
     @Test
     public void testContainsKeyAndContainsValue() {
 
-        Map<String, Integer> redis = new RedisMapObject<>();
+        Map<String, Integer> redis = new RediskaMap<>();
 
         redis.put("key", 10);
 
@@ -95,7 +93,7 @@ public class Map_Tests {
 
     @Test
     public void testPutAllAndClear() {
-        Map<String, Integer> redis = new RedisMapObject<>();
+        Map<String, Integer> redis = new RediskaMap<>();
         Map<String, Integer> testData = new HashMap<>();
 
         testData.put("Key1", 10);
@@ -117,7 +115,7 @@ public class Map_Tests {
     //TODO дописать KeySet
     @Test
     public void testKeySetAndValues() {
-        Map<String, Integer> redis = new RedisMapObject<>();
+        Map<String, Integer> redis = new RediskaMap<>();
         Map<String, Integer> testData = new HashMap<>();
 
         testData.put("Key1", 10);

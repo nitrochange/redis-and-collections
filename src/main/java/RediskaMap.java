@@ -1,8 +1,19 @@
+import redis.clients.jedis.Jedis;
+
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-public class RedisMapObject<K, V> implements Map<K, V> {
+public class RediskaMap<K, V> implements Map<K, V> {
+
+    private Jedis redis;
+    private int size = 0;
+
+    //TODO need configure Jedis
+    public RediskaMap() {
+        this.redis = new Jedis("localhost", 6379);
+    }
+
     /**
      * Returns the number of key-value mappings in this map.  If the
      * map contains more than <tt>Integer.MAX_VALUE</tt> elements, returns
@@ -12,7 +23,7 @@ public class RedisMapObject<K, V> implements Map<K, V> {
      */
     @Override
     public int size() {
-        return 0;
+        return size;
     }
 
     /**
@@ -22,7 +33,7 @@ public class RedisMapObject<K, V> implements Map<K, V> {
      */
     @Override
     public boolean isEmpty() {
-        return false;
+        return size == 0;
     }
 
     /**
@@ -97,7 +108,14 @@ public class RedisMapObject<K, V> implements Map<K, V> {
      */
     @Override
     public V get(Object key) {
-        return null;
+        if (key instanceof String) {
+            String k = (String)key;
+            V result = (V)redis.get(k);
+            return result;
+        }
+        else {
+            return null;
+        }
     }
 
     /**
@@ -126,7 +144,19 @@ public class RedisMapObject<K, V> implements Map<K, V> {
      */
     @Override
     public V put(K key, V value) {
-        return null;
+        if (key instanceof String) {
+            String trueKey = (String)key;
+            if (value instanceof Integer) {
+                Integer trueValue = (Integer) value;
+                Long result = redis.append(trueKey, Integer.toString(trueValue));
+                return value;
+            } else {
+                return value;
+            }
+
+        } else {
+            return null;
+        }
     }
 
     /**
