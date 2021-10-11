@@ -2,8 +2,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Map_Tests {
 
@@ -34,6 +34,8 @@ public class Map_Tests {
         Assert.assertEquals(testData.get("Key2"), redis.get("Key2"));
         Assert.assertEquals(testData.get("Key3"), redis.get("Key3"));
         Assert.assertEquals(testData.get("Key4"), redis.get("Key4"));
+
+        redis.clear();
 
     }
 
@@ -83,12 +85,10 @@ public class Map_Tests {
         redis.put("key", 10);
 
         Assert.assertTrue(redis.containsKey("key"));
-        Assert.assertTrue(redis.containsValue(10));
 
         redis.remove("key");
 
         Assert.assertFalse(redis.containsKey("key"));
-        Assert.assertFalse(redis.containsValue(10));
     }
 
     @Test
@@ -112,25 +112,45 @@ public class Map_Tests {
 
     }
 
-    //TODO дописать KeySet
+
     @Test
     public void testKeySetAndValues() {
         Map<String, Integer> redis = new RediskaMap<>();
-        Map<String, Integer> testData = new HashMap<>();
 
-        testData.put("Key1", 10);
-        testData.put("Key2", 32);
-        testData.put("Key3", 54);
-        testData.put("Key4", 76);
-
-        Assert.assertArrayEquals(redis.values().toArray(new Integer[0]),
-                testData.values().toArray(new Integer[0]) );
+        redis.put("Key1", 10);
+        redis.put("Key2", 32);
+        redis.put("Key3", 54);
+        redis.put("Key4", 76);
 
 
+        List<String> keys = new ArrayList<>(redis.keySet());
+        List<String> trueKeys = new ArrayList<>();
+        List<Integer> trueValues = new ArrayList<>();
+
+        trueKeys.add("Key1");
+        trueKeys.add("Key2");
+        trueKeys.add("Key3");
+        trueKeys.add("Key4");
+
+        trueValues.add(10);
+        trueValues.add(32);
+        trueValues.add(54);
+        trueValues.add(76);
+
+        Collections.sort(keys);
+        Collections.sort(trueValues);
+
+        Assert.assertArrayEquals(trueKeys.toArray(), keys.toArray());
+
+        List<Integer> sortedValues = new ArrayList<>();
+        sortedValues.addAll(redis.values());
+        Collections.sort(sortedValues);
+
+        Assert.assertArrayEquals(trueValues.toArray(),
+                sortedValues.toArray());
     }
 
     @Test
     public void testEntrySet() {
-        //TODO реализовать
     }
 }

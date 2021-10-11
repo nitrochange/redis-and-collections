@@ -1,16 +1,13 @@
 import redis.clients.jedis.Jedis;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class RediskaMap<K, V> implements Map<K, V> {
 
-    private Jedis redis;
+    private final Jedis redis;
     private int size = 0;
 
-    //TODO need configure Jedis
     public RediskaMap() {
         this.redis = new Jedis("localhost", 6379);
     }
@@ -121,7 +118,6 @@ public class RediskaMap<K, V> implements Map<K, V> {
                 return result;
             }
         }
-
         return null;
     }
 
@@ -155,9 +151,8 @@ public class RediskaMap<K, V> implements Map<K, V> {
             String trueKey = (String)key;
             if (value instanceof Integer) {
                 Integer trueValue = (Integer) value;
-                Long result;
                 if (!redis.exists(trueKey)) {
-                    result = redis.append(trueKey, Integer.toString(trueValue));
+                    redis.append(trueKey, Integer.toString(trueValue));
                     size++;
                 }
                 return value;
@@ -232,7 +227,13 @@ public class RediskaMap<K, V> implements Map<K, V> {
      */
     @Override
     public void putAll(Map<? extends K, ? extends V> m) {
-
+        for (Map.Entry<?,?> pair : m.entrySet()) {
+            try {
+                put((K)pair.getKey(), (V) pair.getValue());
+            } catch (Exception e) {
+                System.out.println("Wrong types in map.");
+            }
+        }
     }
 
     /**
@@ -285,7 +286,19 @@ public class RediskaMap<K, V> implements Map<K, V> {
      */
     @Override
     public Collection<V> values() {
-        return null;
+        Set<String> keys = (Set<String>) this.keySet();
+        Collection<V> values = (Collection<V>) new ArrayList<Integer>();
+
+
+        for (String key : keys) {
+            try {
+                values.add((V) Integer.valueOf(redis.get(key)));
+            } catch (Exception e) {
+                values.add(null);
+            }
+        }
+
+        return values;
     }
 
     /**
