@@ -1,8 +1,17 @@
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import redis.clients.jedis.Jedis;
 
-public class RedisMapObject<K, V> implements Map<K, V> {
+import java.util.*;
+import java.util.stream.Collectors;
+
+public class RediskaMap<K, V> implements Map<K, V> {
+
+    private final Jedis redis;
+    private int size = 0;
+
+    public RediskaMap() {
+        this.redis = new Jedis("localhost", 6379);
+    }
+
     /**
      * Returns the number of key-value mappings in this map.  If the
      * map contains more than <tt>Integer.MAX_VALUE</tt> elements, returns
@@ -12,7 +21,7 @@ public class RedisMapObject<K, V> implements Map<K, V> {
      */
     @Override
     public int size() {
-        return 0;
+        return size;
     }
 
     /**
@@ -22,7 +31,7 @@ public class RedisMapObject<K, V> implements Map<K, V> {
      */
     @Override
     public boolean isEmpty() {
-        return false;
+        return size == 0;
     }
 
     /**
@@ -44,7 +53,11 @@ public class RedisMapObject<K, V> implements Map<K, V> {
      */
     @Override
     public boolean containsKey(Object key) {
-        return false;
+        if (key instanceof String) {
+            return redis.exists((String)key);
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -97,6 +110,14 @@ public class RedisMapObject<K, V> implements Map<K, V> {
      */
     @Override
     public V get(Object key) {
+        if (key instanceof String) {
+            String k = (String)key;
+            String elem = redis.get(k);
+            if (elem != null) {
+                V result = (V) Integer.valueOf(elem);
+                return result;
+            }
+        }
         return null;
     }
 
@@ -126,7 +147,22 @@ public class RedisMapObject<K, V> implements Map<K, V> {
      */
     @Override
     public V put(K key, V value) {
-        return null;
+        if (key instanceof String) {
+            String trueKey = (String)key;
+            if (value instanceof Integer) {
+                Integer trueValue = (Integer) value;
+                if (!redis.exists(trueKey)) {
+                    redis.append(trueKey, Integer.toString(trueValue));
+                    size++;
+                }
+                return value;
+            } else {
+                return value;
+            }
+
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -161,7 +197,13 @@ public class RedisMapObject<K, V> implements Map<K, V> {
      */
     @Override
     public V remove(Object key) {
-        return null;
+        if (key instanceof String) {
+            Long result = redis.del((String)key);
+            size--;
+            return (V)result;
+        } else {
+            return (V)(new Integer(0));
+        }
     }
 
     /**
@@ -185,7 +227,13 @@ public class RedisMapObject<K, V> implements Map<K, V> {
      */
     @Override
     public void putAll(Map<? extends K, ? extends V> m) {
-
+        for (Map.Entry<?,?> pair : m.entrySet()) {
+            try {
+                put((K)pair.getKey(), (V) pair.getValue());
+            } catch (Exception e) {
+                System.out.println("Wrong types in map.");
+            }
+        }
     }
 
     /**
@@ -197,7 +245,7 @@ public class RedisMapObject<K, V> implements Map<K, V> {
      */
     @Override
     public void clear() {
-
+        redis.flushAll();
     }
 
     /**
@@ -217,7 +265,8 @@ public class RedisMapObject<K, V> implements Map<K, V> {
      */
     @Override
     public Set<K> keySet() {
-        return null;
+        Set<String> keys = redis.keys("*");
+        return keys.stream().map( x -> (K)x).collect(Collectors.toSet());
     }
 
     /**
@@ -237,7 +286,19 @@ public class RedisMapObject<K, V> implements Map<K, V> {
      */
     @Override
     public Collection<V> values() {
-        return null;
+        Set<String> keys = (Set<String>) this.keySet();
+        Collection<V> values = (Collection<V>) new ArrayList<Integer>();
+
+
+        for (String key : keys) {
+            try {
+                values.add((V) Integer.valueOf(redis.get(key)));
+            } catch (Exception e) {
+                values.add(null);
+            }
+        }
+
+        return values;
     }
 
     /**
